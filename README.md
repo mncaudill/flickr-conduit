@@ -7,6 +7,25 @@ flickr-conduit is a subsriber endpoint for Flickr's implementation of the PubSub
 
 The server works in publish/subscribe model itself, with users registering events they're interested in and then flickr-conduit answering these subscription requests. This works identically to node's own EventEmitter class and in fact uses that under the covers.
 
+## Installation
+
+```bash
+npm install flickr-conduit
+```
+
+## Usage
+
+```bash
+var Conduit = require('flickr-conduit').Conduit;
+
+var conduit = new Conduit();
+conduit.listen(1900);
+
+conduit.on('some-event-name', function(data) {
+    console.log(data);
+});
+```
+
 ## Flow
 
 1. The server is running on user-defined port. 
