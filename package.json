@@ -1,0 +1,19 @@
+{
+  "author": "Nolan Caudill <nolan@nolancaudill.com> (http://nolancaudill.com)",
+  "name": "flickr-conduit",
+  "description": "A subscriber endpoint for Flickr's real-time PuSH feed",
+  "version": "0.1.0",
+  "homepage": "https://github.com/mncaudill/flickr-conduit",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/mncaudill/flickr-conduit.git"
+  },
+  "main": "conduit.js",
+  "engines": {
+    "node": "~v0.4.9"
+  },
+  "dependencies": {
+    "xml2js": "0.1.9"
+  },
+  "devDependencies": {}
+}
