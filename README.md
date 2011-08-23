@@ -40,3 +40,20 @@ conduit.on('some-event-name', function(data) {
 * Also, this code has been running for me for a couple of weeks with no problems, but if any long-running server, you may want to use node's "process.on("uncaughtException", function(){})" to catch bad things.
 * This library is fun with socket.io. I've included an example of me using flickr-conduit to shove things to socket.io.
 
+## More Things to Read
+
+Get cranking with the API [here](http://www.flickr.com/services/developer/). 
+
+Read Neil's [blogpost](http://code.flickr.com/blog/2011/06/30/dont-be-so-pushy/) on PuSH.
+
+Also, read Kellan's [blogpost](http://laughingmeme.org/2011/07/24/getting-started-with-flickr-real-time-apis-in-php/) on getting going with the PuSH API method.
+
+## Thanks
+
+Neil Walker is a hero. The Flickr PuSH stuff wouldn't exist without him.
+
+Trevor Hartsell is a JavaScript wizard and helped my PHP-addled brain with some of the code.
+
+Aaron Straup Cope deserves more than a nod for keeping the just-ship-it spirit going.
+
+Kellan Elliott-McCrea wrote a [nice blogpost](http://laughingmeme.org/2011/07/24/getting-started-with-flickr-real-time-apis-in-php/) detailing how the whole subscriber flow works from beginning to end.
