@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git://github.com/mncaudill/flickr-conduit.git"
   },
-  "main": "conduit.js",
+  "main": "flickr-conduit.js",
   "dependencies": {
     "xml2js": ">=0.1.9"
   },
