@@ -36,7 +36,7 @@ conduit.on('some-event-name', function(data) {
 
 ## Tips
 
-* Make sure you override the subscribeCallback (and probably unsubscribeCallback) methods as by default these return true. I use an HMACof the callback URL and my Flickr API secret as my verify_token as this was easy to write in both PHP and node.
+* Make sure you override the subscribeCallback (and probably unsubscribeCallback) methods as by default these return true. I use an HMAC of the callback URL and my Flickr API secret as my verify_token as this was easy to write in both PHP and node.
 * Also, this code has been running for me for a couple of weeks with no problems, but if any long-running server, you may want to use node's "process.on("uncaughtException", function(){})" to catch bad things.
 * This library is fun with socket.io. I've included an example of me using flickr-conduit to shove things to socket.io.
 
