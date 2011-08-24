@@ -73,6 +73,7 @@ var parseFlickrPost = function(content, callback) {
                     width: imgData.width,
                     height: imgData.height,
                     link: photoUrl,
+                    raw: entries[i],
                 });
             } catch (e) {
                 // Noop
