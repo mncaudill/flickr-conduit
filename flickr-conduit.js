@@ -9,10 +9,36 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 */
 
+/*
+    Conduit simply receives events on a particular callback and then republishes these events through an emitter. That's it.
+
+    This stuff is already opinionated in things that don't matter too much. It's trivial to modify any consumers of this code to 
+    fix the decisions I've made.
+
+    The first version of this software let you verify your own verify_tokens for both 'unsubscribe' and 'subscribe' separtely.
+    I went ahead and decided to do this verification via HMAC with the callback URL and a secret you pass into Conduit.
+
+    Then I had an fairly inflexible way to map figure out "event names" from the incoming callback. This violated a separation-of-concerns
+    by making the callback URL map *directly* to what the event was, as it was just a base64-encoded, dash-separated represenation of the 
+    subscription info. This fit my app fine, but probably wasn't clear for everyone else. Also, when Neil added parameterized topics (e.g., geo,
+    tags, etc), this proved my naive implemenation as hard-to-adapt.
+
+    I've changed this by every callback URL be just a ID with no intrinsic importance and force the application that initiates subscriptions,
+    to figure out what this means. Conduit doesn't need to know what this is -- it's just a conduit that just knows that the callback URL has a 
+    query parameter called 'sub' that it will publish a parsed Flickr push event to its emitter.
+
+    Also, an oversight in the first version was Conduit automatically refreshing subscriptions even if the person hadn't logged in some time.
+    If I haven't received a heartbeat for a user in 10 minutes and I get a subscription request for them, I don't refresh the subscription and
+    unset the subscription in Redis.
+
+*/
+
 var EventEmitter = require('events').EventEmitter
     , urlParser = require('url').parse
     , xml2js = require('xml2js')
     , http = require('http')
+    , redis = require('redis')
+    , redisClient = redis.createClient()
 ;
 
 var Conduit = function() {
@@ -21,33 +47,30 @@ var Conduit = function() {
     var emitter = new EventEmitter();
     emitter.setMaxListeners(0);
     this.emitter = emitter;
+
+    this.userLastSeenThreshold = 300; // 5 minutes
 }
 
 exports.Conduit = Conduit;
 
-// Receives parser URL object and verifyToken
-// Returns true or false
-Conduit.prototype.unsubscribeCallback = function(urlParts, verifyToken) {
+// Recevies parsed URL object and returns true or false
+Conduit.prototype.unsubscribeCallback = function(urlParts) {
     return true;
 }
 
-// Receives parser URL object and verifyToken
-// Returns true or false
-Conduit.prototype.subscribeCallback = function(urlParts, verifyToken) {
+// Recevies parsed URL object and returns true or false
+Conduit.prototype.subscribeCallback = function(urlParts) {
     return true;
 }
 
-// By default, if you have a format of /callback?sub=$SUB where $SUB is the base64-encoded "nsid-topic_type",
-// you're good to go. Otherwise you'll want to pass in a function that takes the urlParts (a parsed URL)
-// and returns a string. I haven't retooled this yet to support the parameterized topic types like tags and geo.
-Conduit.prototype.getEventName = function(urlParts) {
-    var sub = new Buffer(urlParts.query.sub, 'base64').toString('ascii');
-    var eventPieces = sub.split('-');
+// Assumes that there's a URL query parameter called 'sub' that
+// maps to the subscription name in redis. Override this if you like.
+Conduit.prototype.getCallbackId = function(urlParts) {
+    return urlParts.query.sub;
+}
 
-    var nsid = eventPieces[0];
-    var stream = eventPieces[1];
-    var eventName = nsid + '-' + stream;
-    return eventName;
+Conduit.prototype.userHeartbeat = function(userId) {
+    redisClient.set(userId, Date.now());    
 }
 
 var parseFlickrPost = function(content, callback) {
@@ -85,39 +108,46 @@ var parseFlickrPost = function(content, callback) {
     xml.parseString(content);
 }
 
+
 var pushHandler = function(req, res) {
-    var urlParts = urlParser(req.url, true);
-    var content = '';
     var me = this;
+
+    var urlParts = urlParser(req.url, true);
+
+    var content = '';
+    var callbackId = me.getCallbackId(urlParts);
 
     req.on('data', function(data) {
         content += data;
     });
 
     req.on('end', function() {
-        var verifyToken = urlParts.query.verify_token;
-
-        if (urlParts.query.mode == 'unsubscribe') {
-            if (me.unsubscribeCallback(urlParts, verifyToken)) {
-                if (urlParts.query.challenge) {
-                    res.write(urlParts.query.challenge);
-                }
+        var mode = urlParts.query.mode;
+        if (mode == 'unsubscribe') {
+            if (me.unsubscribeCallback(urlParts)) {
+                res.write(urlParts.query.challenge);
             }
-        } else if (urlParts.query.mode == 'subscribe') {
-            if (me.subscribeCallback(urlParts, verifyToken)) {
-                if (urlParts.query.challenge) {
+        } else if (mode == 'subscribe') {
+            if (me.subscribeCallback(urlParts)) {
+                // We could be getting two types of subscription requests:
+                // 1) User-initiated
+                //      At this point, we should have created a callback ID and its 'last-seen' time should
+                //      be well under our threshold
+                // 2) Lease renewal
+                //      If the last-seen time for this callback ID is under our threshold, renew it.
+
+                var lastSeen = redisClient.get(callbackId);
+                if (lastSeen + me.userLastSeenThreshold > Date.now()) {
                     res.write(urlParts.query.challenge);
                 }
             }
         } else {
             // Parse what we've gotten
-            var eventName = me.getEventName(urlParts);
             parseFlickrPost(content, function(imgObjs) {
                 for (var i in imgObjs) {
-                    me.emitter.emit(eventName, imgObjs[i]);
+                    me.emitter.emit(callbackId, imgObjs[i]);
                 }
             });
-
         } 
         res.end();
     });
