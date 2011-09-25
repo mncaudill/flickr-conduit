@@ -29,7 +29,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     Also, an oversight in the first version was Conduit automatically refreshing subscriptions even if the person hadn't logged in some time.
     If I haven't received a heartbeat for a user in 10 minutes and I get a subscription request for them, I don't refresh the subscription and
-    unset the subscription in Redis.
+    unset the time last seen.
 
 */
 
@@ -37,8 +37,6 @@ var EventEmitter = require('events').EventEmitter
     , urlParser = require('url').parse
     , xml2js = require('xml2js')
     , http = require('http')
-    , redis = require('redis')
-    , redisClient = redis.createClient()
 ;
 
 var Conduit = function() {
@@ -48,7 +46,8 @@ var Conduit = function() {
     emitter.setMaxListeners(0);
     this.emitter = emitter;
 
-    this.userLastSeenThreshold = 600; // 10 minutes
+    this.usersLastSeen = {};
+    this.userLastSeenThreshold = 300 * 1000; // 5 minutes (since that's the lease length)
 }
 
 exports.Conduit = Conduit;
@@ -70,8 +69,12 @@ Conduit.prototype.getCallbackId = function(urlParts) {
 }
 
 Conduit.prototype.heartbeat = function(callbackId) {
-    console.log("setting " + callbackId + " via heartbeat");
-    redisClient.set(callbackId, Date.now());    
+    console.log("heartbeat for " + callbackId + ": " + Date.now());
+    this.usersLastSeen[callbackId] = Date.now();
+}
+
+Conduit.prototype.kill = function(callbackId) {
+    delete this.usersLastSeen[callbackId];
 }
 
 var parseFlickrPost = function(content, callback) {
@@ -112,11 +115,24 @@ var parseFlickrPost = function(content, callback) {
 
 var pushHandler = function(req, res) {
     var me = this;
+    console.log(req.url);
+    var now = Date.now();
 
     var urlParts = urlParser(req.url, true);
 
     var content = '';
     var callbackId = me.getCallbackId(urlParts);
+
+    // Since we are storing this in-process, in case
+    // we restart the node server, people will eventually
+    // get set to someting.
+    if (me.usersLastSeen[callbackId] === undefined) {
+        console.log("setting last seen for blank callback Id to " + now);
+        me.usersLastSeen[callbackId] = now;
+    }
+
+    var lastSeen = me.usersLastSeen[callbackId];
+    console.log(lastSeen);
 
     req.on('data', function(data) {
         content += data;
@@ -127,50 +143,26 @@ var pushHandler = function(req, res) {
         if (mode == 'unsubscribe') {
             if (me.unsubscribeCallback(urlParts)) {
                 res.write(urlParts.query.challenge);
-                res.end();
             }
         } else if (mode == 'subscribe') {
             if (me.subscribeCallback(urlParts)) {
-
-                // We could be getting two types of subscription requests:
-                // 1) User-initiated
-                //      At this point, we should have created a callback ID and its 'last-seen' time should
-                //      be well under our threshold
-                // 2) Lease renewal
-                //      If the last-seen time for this callback ID is under our threshold, renew it.
-                console.log("getting a subscription request for " + callbackId);
-
-                redisClient.get(callbackId, function(err, lastSeen) {
-                    if (err) {
-                        return;
-                    }
-
-                    // This means we haven't seen this subscription before.
-                    if (!lastSeen) {
-                        res.write(urlParts.query.challenge);
-                    }
-                    // This means we have and it's still alive (thanks to the heartbeat)
-                    else if (lastSeen && (lastSeen + me.userLastSeenThreshold > Date.now())) {
-                        res.write(urlParts.query.challenge);
-                    } else {
-                        // Don't create subscription and clear out old one.
-                        console.log("removing subscription request for " + callbackId);
-                        redisClient.del(callbackId, redis.print);
-                    }
-                    res.end();
-                });
-            } else {
-                res.end();
+                if (lastSeen + me.userLastSeenThreshold < now) {
+                    console.log("removing subscription request for " + callbackId);
+                    res.writeHead(404);
+                } else { 
+                    res.write(urlParts.query.challenge);
+                }
             }
         } else {
             // Parse what we've gotten
             parseFlickrPost(content, function(imgObjs) {
                 for (var i in imgObjs) {
+                    console.log('emitting ' + callbackId);
                     me.emitter.emit(callbackId, imgObjs[i]);
                 }
             });
-            res.end();
         } 
+        res.end();
     });
 }
 

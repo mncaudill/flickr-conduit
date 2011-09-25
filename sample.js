@@ -4,15 +4,18 @@ var io = require('socket.io').listen(1340)
 ;
 
 var conduit = new Conduit();
+conduit.subscribeCallback = function(urlParts) {
+    return urlParts.query.verify_token == 'nolans funtime';
+}
 conduit.listen(1338);
 
 io.sockets.on('connection', function(socket) {
     socket.on('subscribe', function(data) {
         for (var i in data.events) {
+            conduit.heartbeat(data.events[i]);
             conduit.on(data.events[i], function(img) {
                 socket.emit('publish', img);    
             });
-            conduit.heartbeat(data.events[i]);
         }
     });
 
