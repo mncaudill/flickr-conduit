@@ -63,7 +63,6 @@
                         'callback' => $cfg['base_push_callback_url'] . $callback_id,
                         'verify' => 'async',
                         'verify_token' => 'nolans funtime',
-                        'lease_seconds' => 300,
                     ), 1);
                     $live_subscriptions[$callback_id] = 1;
                 }
@@ -99,7 +98,6 @@
                             'callback' => $cfg['base_push_callback_url'] . $callback_id,
                             'verify' => 'async',
                             'verify_token' => 'nolans funtime',
-                            'lease_seconds' => 300,
                             'lat' => $lat,
                             'lon' => $lon,
                             'radius' => $rad,
@@ -123,7 +121,6 @@
                         'callback' => $cfg['base_push_callback_url'] . $callback_id,
                         'verify' => 'async',
                         'verify_token' => 'nolans funtime',
-                        'lease_seconds' => 300,
                         'nsids' => isset($_POST['commons_nsids']) ? $_POST['commons_nsids'] : '',
                     ), 1);
                     $live_subscriptions[$callback_id] = 1;
@@ -142,7 +139,6 @@
                         'callback' => $cfg['base_push_callback_url'] . $callback_id,
                         'verify' => 'async',
                         'verify_token' => 'nolans funtime',
-                        'lease_seconds' => 300,
                         'tags' => isset($_POST['tags']) ? $_POST['tags'] : '',
                     ), 1);
                     $live_subscriptions[$callback_id] = 1;
