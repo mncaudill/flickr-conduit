@@ -4,10 +4,10 @@
 
     $cfg = array();
 
-    $cfg['base_url'] = 'http://nolancaudill.com/projects/conduit-dev/';
-    $cfg['base_push_url'] = 'http://nolancaudill.com:1338/';
+    $cfg['base_url'] = 'BASE_SITE_URL';
+    $cfg['base_push_url'] = 'URL_WHERE_CONDUIT_LISTENS';
     $cfg['base_push_callback_url'] = $cfg['base_push_url'] . 'callback?sub=';
-    $cfg['base_socket_url'] = 'http://nolancaudill.com:1340/';
+    $cfg['base_socket_url'] = 'BASE_SOCKET_URL'; // where socket.io is listening
 
     $cfg['logout'] = $cfg['base_url'] . 'logout.php';
     $cfg['login'] = $cfg['base_url'] . 'login.php';
