@@ -1,0 +1,35 @@
+<?php
+    
+    session_start();
+
+    $cfg = array();
+
+    $cfg['base_url'] = 'http://nolancaudill.com/projects/conduit-dev/';
+    $cfg['base_push_url'] = 'http://nolancaudill.com:1338/';
+    $cfg['base_push_callback_url'] = $cfg['base_push_url'] . 'callback?sub=';
+    $cfg['base_socket_url'] = 'http://nolancaudill.com:1340/';
+
+    $cfg['logout'] = $cfg['base_url'] . 'logout.php';
+    $cfg['login'] = $cfg['base_url'] . 'login.php';
+
+    $cfg['flickr_key'] = 'YOURFLICKRKEY';
+    $cfg['flickr_secret'] = 'YOURFLICKRSECRET';
+
+    $cfg['account'] = array();
+
+    function global_check_login() {
+
+        if (isset($_SESSION['flickr_token'])) {
+            $GLOBALS['cfg']['account'] = $_SESSION['flickr_token'];
+            return true;
+        } 
+
+        return false;
+    }
+
+    function global_redirect($location) {
+        header("Location: $location");
+        exit;
+    }
+
+    require 'flickr.simple.php';
