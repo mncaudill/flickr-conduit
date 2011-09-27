@@ -2,7 +2,7 @@
     require 'include/init.php';
 
     if (!global_check_login()) {
-    //    global_redirect('/index.php');
+        global_redirect('index.php');
     }
 
     $topics = array(
@@ -28,19 +28,20 @@
     $active_subscriptions = array();
 
     // Figure out what we are currently subscribed to so we'll know what we need to add from the passed-in form data
-    foreach ($subscriptions['subscriptions']['subscription'] as $sub) {
-        if (strpos($sub['callback'], $cfg['base_push_url']) === 0) {
-            $pieces = explode('&', parse_url($sub['callback'], PHP_URL_QUERY));    
-            foreach ($pieces as $piece) {
-                list($k, $v) = explode('=', $piece, 2);
-                if ($k == 'sub') {
-                    $live_subscriptions[$v] = 1;
+    if (isset($subscriptions['subscriptions']['subscription'])) {
+        foreach ($subscriptions['subscriptions']['subscription'] as $sub) {
+            if (strpos($sub['callback'], $cfg['base_push_url']) === 0) {
+                $pieces = explode('&', parse_url($sub['callback'], PHP_URL_QUERY));    
+                foreach ($pieces as $piece) {
+                    list($k, $v) = explode('=', $piece, 2);
+                    if ($k == 'sub') {
+                        $live_subscriptions[$v] = 1;
+                    }
                 }
             }
         }
     }
 
-    $valid_topics = 0;
     $titles = array();
 
     foreach ($_POST['streams'] as $topic) {
@@ -92,7 +93,7 @@
                     $titles[] = "Geo $i";
 
                     if (!isset($live_subscriptions[$callback_id])) {
-                        $res = $flickr->call_method('flickr.push.subscribe', array(
+                        $flickr->call_method('flickr.push.subscribe', array(
                             'auth_token' => $token,
                             'topic' => $topic,
                             'callback' => $cfg['base_push_callback_url'] . $callback_id,
@@ -103,7 +104,6 @@
                             'radius' => $rad,
                             'radius_units' => 'km',
                         ), 1);
-                        print_r($res);
                         $live_subscriptions[$callback_id] = 1;
                     }
                 }
@@ -159,11 +159,11 @@
 <html>
     <head>
         <title>Conduit: An Experiment</title>
+        <link rel="stylesheet" type="text/css" href="site.css">
     </head>
     <body>
         <div id="images"></div>
         <div id="message">Now we wait...</div>
-        <p><?=$titles_text?></p>
         <script src="<?=$cfg['base_socket_url']?>socket.io/socket.io.js"></script>
         <script>
             var img_box = document.getElementById('images');
@@ -177,25 +177,6 @@
                 buffer.unshift(data);
             }
 
-            socket.on('connect', function() {
-                socket.emit('subscribe', {
-                   events: events,
-                });
-            });
-            socket.on('disconnect', function() {
-                console.log('disconnected'); 
-            });
-            socket.on('publish', function(data) {
-                console.log(data);
-
-                if (seen[data.url]) {
-                    return;
-                }
-
-                seen[data.url] = true;
-                enqueue(data);
-            });
-
             function appendImage(data) {
                 var link = document.createElement('a');
                 link.href = data.link;
@@ -203,8 +184,6 @@
 
                 var image = new Image();
                 image.src = data.url;
-                //image.width = data.width;
-                //image.height = data.height;
 
                 // How many images are already in there?
                 var images = img_box.childNodes;
@@ -218,6 +197,23 @@
                 link.appendChild(image);
             }
 
+            socket.on('connect', function() {
+                socket.emit('subscribe', {
+                   events: events,
+                });
+            });
+
+            socket.on('publish', function(data) {
+                console.log(data);
+
+                if (seen[data.url]) {
+                    return;
+                }
+
+                seen[data.url] = true;
+                enqueue(data);
+            });
+
             setInterval(function() {
                 console.log("running popper...");
                 if (buffer.length > 0) {
@@ -228,7 +224,7 @@
                 for (var i in events) {
                     socket.emit('heartbeat', events[i]);
                 }
-            }, 30000);
+            }, 15000);
 
         </script>
     </body>

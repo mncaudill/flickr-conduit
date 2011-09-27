@@ -2,9 +2,6 @@
 
     require 'include/init.php';     
 
-    ini_set('display_errors', true);
-    error_reporting(E_ALL);
-
     # We don't know who they are. Make them log back in!
     $flickr = new Flickr($GLOBALS['cfg']['flickr_key'], $GLOBALS['cfg']['flickr_secret']);
 
@@ -16,6 +13,7 @@
 <html>
     <head>
         <title>Conduit: An Experiment</title>
+        <link type="text/css" rel="stylesheet" href="site.css">
     </head>
     <body>
         <h1>Conduit</h1>
@@ -26,35 +24,31 @@
 
     } else {
         print "<p>Logged in as {$GLOBALS['cfg']['account']['auth']['user']['username']}. <a href='{$GLOBALS['cfg']['logout']}'>Log out?</a></p>";
-    }
 
 ?>
         <form method='post' action='streams.php'>
-            <input type="checkbox" name="streams[]" value="contacts_photos">Photos from your Contacts<br>
-            <input type="checkbox" name="streams[]" value="contacts_faves">Favorites from your Contacts<br>
-            <input type="checkbox" name="streams[]" value="photos_of_contacts">Photos of your Contacts<br>
+            <input type="checkbox" name="streams[]" value="commons">Photos from the Flickr Commons<br>
+            <input type="checkbox" name="streams[]" value="contacts_photos">Photos from your contacts<br>
+            <input type="checkbox" name="streams[]" value="contacts_faves">Favorites from your contacts<br>
+            <input type="checkbox" name="streams[]" value="photos_of_contacts">Photos of your contacts<br>
             <input type="checkbox" name="streams[]" value="photos_of_me">Photos of you<br>
-            <input type="checkbox" name="streams[]" value="my_photos">Your Photos<br>
-            <input type="checkbox" name="streams[]" value="my_faves">Your Favorites<br>
+            <input type="checkbox" name="streams[]" value="my_photos">Your photos<br>
+            <input type="checkbox" name="streams[]" value="my_faves">Your favorites<br>
 
             <input type="checkbox" name="streams[]" value="geo">Photos from an area (geo)<br>
             Latitude: <input type="text" name="lat_1"> 
-            Longitude: <input type="text" name="lon_1"><br>
+            Longitude: <input type="text" name="lon_1">
             Radius (in km): <input type="text" name="rad_1"><br>
-            <hr>
+
             Latitude: <input type="text" name="lat_2"> 
-            Longitude: <input type="text" name="lon_2"><br>
+            Longitude: <input type="text" name="lon_2">
             Radius (in km): <input type="text" name="rad_2"><br>
-            <hr>
+
             Latitude: <input type="text" name="lat_3"> 
-            Longitude: <input type="text" name="lon_3"><br>
-            Radius (in km): <input type="text" name="rad_3"><br>
-            <br>
+            Longitude: <input type="text" name="lon_3">
+            Radius (in km): <input type="text" name="rad_3"><br><br>
 
-            <input type="checkbox" name="streams[]" value="commons">photos from the Flickr Commons<br>
-            <input type="text" name="commons_nsids"><br>
-
-            <input type="checkbox" name="streams[]" value="tags">Photos with a tag (or tags)<br>
+            <input type="checkbox" name="streams[]" value="tags">Photos with a tag (or tags)
             <input type="text" name="tags"><br>
 
             <input type="hidden" name="submitted" value="1">
@@ -62,3 +56,6 @@
         </form>
     </body>
 </html>
+<?php
+    }
+?>

@@ -34,6 +34,11 @@ conduit.on('some-event-name', function(data) {
 4. After the challenge-response step is completed, Flickr will start posting XML blobs to the endpoint. flickr-conduit will parse this and then emit an event with the parsed payload. There is a function called getEventName (also user-defined) that takes the parsed URL and returns a string that signfies the event name. By default, I use the method of base64-encoding the Flickr NSID and the feed topic_type to create unique callbacks and just use this as the event name. If you want something different, override the getEventName function for your conduit instance.
 5. flickr-conduit will then run any callbacks you've registered with it (using your instance's "on" method) with the image payload. 
 
+
+## Sample site
+
+If you install socket.io and run sample.js and put 'site/' in an Apache & PHP setup, you'll have a simple site that shows you an example of what this stuff can do.
+
 ## Tips
 
 * Make sure you override the subscribeCallback (and probably unsubscribeCallback) methods as by default these return true. I use an HMAC of the callback URL and my Flickr API secret as my verify_token as this was easy to write in both PHP and node.
