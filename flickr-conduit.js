@@ -47,7 +47,7 @@ var Conduit = function() {
     this.emitter = emitter;
 
     this.usersLastSeen = {};
-    this.userLastSeenThreshold = 300 * 1000; // 5 minutes (since that's the lease length)
+    this.userLastSeenThreshold = 30 * 1000; // 5 minutes (since that's the lease length)
 }
 
 exports.Conduit = Conduit;
@@ -64,17 +64,12 @@ Conduit.prototype.subscribeCallback = function(urlParts) {
 
 // Assumes that there's a URL query parameter called 'sub' that
 // maps to the subscription name in redis. Override this if you like.
-Conduit.prototype.getCallbackId = function(urlParts) {
+Conduit.prototype.getEventName = function(urlParts) {
     return urlParts.query.sub;
 }
 
 Conduit.prototype.heartbeat = function(callbackId) {
-    console.log("heartbeat for " + callbackId + ": " + Date.now());
     this.usersLastSeen[callbackId] = Date.now();
-}
-
-Conduit.prototype.kill = function(callbackId) {
-    delete this.usersLastSeen[callbackId];
 }
 
 var parseFlickrPost = function(content, callback) {
@@ -121,18 +116,16 @@ var pushHandler = function(req, res) {
     var urlParts = urlParser(req.url, true);
 
     var content = '';
-    var callbackId = me.getCallbackId(urlParts);
+    var callbackId = me.getEventName(urlParts);
 
     // Since we are storing this in-process, in case
     // we restart the node server, people will eventually
     // get set to someting.
     if (me.usersLastSeen[callbackId] === undefined) {
-        console.log("setting last seen for blank callback Id to " + now);
         me.usersLastSeen[callbackId] = now;
     }
 
-    var lastSeen = me.usersLastSeen[callbackId];
-    console.log(lastSeen);
+    var lastSeen = parseInt(me.usersLastSeen[callbackId], 10);
 
     req.on('data', function(data) {
         content += data;
@@ -147,17 +140,14 @@ var pushHandler = function(req, res) {
         } else if (mode == 'subscribe') {
             if (me.subscribeCallback(urlParts)) {
                 if (lastSeen + me.userLastSeenThreshold < now) {
-                    console.log("removing subscription request for " + callbackId);
                     res.writeHead(404);
                 } else { 
                     res.write(urlParts.query.challenge);
                 }
             }
         } else {
-            // Parse what we've gotten
             parseFlickrPost(content, function(imgObjs) {
                 for (var i in imgObjs) {
-                    console.log('emitting ' + callbackId);
                     me.emitter.emit(callbackId, imgObjs[i]);
                 }
             });
