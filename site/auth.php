@@ -1,6 +1,6 @@
 <?php
 
-    require 'inlude/init.php';
+    require 'include/init.php';
 
 
     $flickr = new Flickr($GLOBALS['cfg']['flickr_key'], $GLOBALS['cfg']['flickr_secret']);
