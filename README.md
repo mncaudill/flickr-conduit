@@ -49,7 +49,7 @@ If you install socket.io and run sample.js and put 'site/' in an Apache & PHP se
 
 Don't have your own server? Or just want to fire it up real quick and see what it's all about?
 
-Tom Carden has graciously modified the PHP site portion of this to run on Heroku. The links to that are: [](https://github.com/RandomEtc/flickr-conduit-back) and [](https://github.com/RandomEtc/flickr-conduit-front).
+Tom Carden has graciously modified the PHP site portion of this to run on Heroku. The links to that are: [https://github.com/RandomEtc/flickr-conduit-back](https://github.com/RandomEtc/flickr-conduit-back) and [https://github.com/RandomEtc/flickr-conduit-front](https://github.com/RandomEtc/flickr-conduit-front).
 
 ## More Things to Read
 
