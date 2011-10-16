@@ -45,6 +45,12 @@ If you install socket.io and run sample.js and put 'site/' in an Apache & PHP se
 * Also, this code has been running for me for a couple of weeks with no problems, but if any long-running server, you may want to use node's "process.on("uncaughtException", function(){})" to catch bad things.
 * This library is fun with socket.io. I've included an example of me using flickr-conduit to shove things to socket.io.
 
+## Heroku deploy
+
+Don't have your own server? Or just want to fire it up real quick and see what it's all about?
+
+Tom Carden has graciously modified the PHP site portion of this to run on Heroku. The links to that are: [](https://github.com/RandomEtc/flickr-conduit-back) and [](https://github.com/RandomEtc/flickr-conduit-front).
+
 ## More Things to Read
 
 Get cranking with the API [here](http://www.flickr.com/services/developer/). 
