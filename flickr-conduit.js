@@ -76,30 +76,30 @@ var parseFlickrPost = function(content, callback) {
     var xml = new xml2js.Parser();
     var imgObjs = [];
     xml.on('end', function(data) {
-        // We possibly get multiple entries per POST
-        var entries = Array.isArray(data.entry) ? data.entry : [data.entry];
+        try {
+            // We possibly get multiple entries per POST
+            var entries = Array.isArray(data.entry) ? data.entry : [data.entry];
 
-        var imgData = null;
-        var photoUrl= null;
-        for (var i in entries) {
-            try {
-                imgData = entries[i]['media:content']['@'];
+            var imgData = null;
+            var photoUrl= null;
+            for (var i in entries) {
+                    imgData = entries[i]['media:content']['@'];
 
-                // Dumb, but there's a bug in the xml2js that messes up on the <link> tab. (Or I'm missing something.)
-                var id = entries[i]['id'].split(':')[2].split('/')[2];
-                photoUrl = entries[i].author.uri.replace("http://www.flickr.com/people/", 'http://www.flickr.com/photos/');
-                photoUrl += id + '/';
+                    // Dumb, but there's a bug in the xml2js that messes up on the <link> tab. (Or I'm missing something.)
+                    var id = entries[i]['id'].split(':')[2].split('/')[2];
+                    photoUrl = entries[i].author.uri.replace("http://www.flickr.com/people/", 'http://www.flickr.com/photos/');
+                    photoUrl += id + '/';
 
-                imgObjs.push({
-                    url: imgData.url,
-                    width: imgData.width,
-                    height: imgData.height,
-                    link: photoUrl,
-                    raw: entries[i],
-                });
-            } catch (e) {
-                // Noop
+                    imgObjs.push({
+                        url: imgData.url,
+                        width: imgData.width,
+                        height: imgData.height,
+                        link: photoUrl,
+                        raw: entries[i],
+                    });
             }
+        } catch (e) {
+            // Noop
         }
         callback(imgObjs);
     });
