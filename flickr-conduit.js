@@ -110,7 +110,6 @@ var parseFlickrPost = function(content, callback) {
 
 var pushHandler = function(req, res) {
     var me = this;
-    console.log(req.url);
     var now = Date.now();
 
     var urlParts = urlParser(req.url, true);
