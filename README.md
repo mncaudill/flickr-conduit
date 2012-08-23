@@ -1,3 +1,4 @@
+[![build status](https://secure.travis-ci.org/mncaudill/flickr-conduit.png)](http://travis-ci.org/mncaudill/flickr-conduit)
 flickr-conduit: a PubSub subscriber endpoint for Flickr's real-time PuSH feed
 ===================
 
