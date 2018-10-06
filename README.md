@@ -3,7 +3,7 @@ flickr-conduit: a PubSub subscriber endpoint for Flickr's real-time PuSH feed
 
 ## Description
 
-flickr-conduit is a subsriber endpoint for Flickr's implementation of the PubSubHubbub spec. It handles the the 'subscribe', 'unsubscribe', and the parsing of the XML that Flickr pushes out.
+flickr-conduit is a subscriber endpoint for Flickr's implementation of the PubSubHubbub spec. It handles the 'subscribe', 'unsubscribe', and the parsing of the XML that Flickr pushes out.
 
 The server works in publish/subscribe model itself, with users registering events they're interested in and then flickr-conduit answering these subscription requests. This works identically to node's own EventEmitter class and in fact uses that under the covers.
 
